@@ -113,6 +113,7 @@ class Game():
                                  (465, 55), (455, 55)]
         #initial direction of the snake
         self.direction = "Left"
+        self.nextDirection = "Left" # Added new object to prevent illegal changes within one tick
         self.gameNotOver = True
         self.createNewPrey()
 
@@ -124,10 +125,11 @@ class Game():
             Use the SPEED constant to set how often the move tasks
             are generated.
         """
-        SPEED = 0.15     #speed of snake updates (sec)
+        SPEED = 0.2    #speed of snake updates (sec)
         while self.gameNotOver:
             #complete the method implementation below
-            pass #remove this line from your implementation
+            self.move()
+            time.sleep(SPEED)
 
     def whenAnArrowKeyIsPressed(self, e) -> None:
         """ 
@@ -137,14 +139,14 @@ class Game():
             the key that was pressed by the gamer.
             Use as is.
         """
-        currentDirection = self.direction
+        nextDirection = e.keysym
         #ignore invalid keys
-        if (currentDirection == "Left" and e.keysym == "Right" or 
-            currentDirection == "Right" and e.keysym == "Left" or
-            currentDirection == "Up" and e.keysym == "Down" or
-            currentDirection == "Down" and e.keysym == "Up"):
+        if (self.direction == "Left" and nextDirection == "Right" or 
+            self.direction == "Right" and nextDirection == "Left" or
+            self.direction == "Up" and nextDirection == "Down" or
+            self.direction == "Down" and nextDirection == "Up"):
             return
-        self.direction = e.keysym
+        self.nextDirection = nextDirection
 
     def move(self) -> None:
         """ 
@@ -159,8 +161,14 @@ class Game():
             The snake coordinates list (representing its length 
             and position) should be correctly updated.
         """
+        self.direction = self.nextDirection
         NewSnakeCoordinates = self.calculateNewCoordinates()
+        print(NewSnakeCoordinates)
         #complete the method implementation below
+        self.snakeCoordinates.append(NewSnakeCoordinates)
+        self.snakeCoordinates = self.snakeCoordinates[1:]
+        self.queue.put({"move": self.snakeCoordinates})
+        #print(self.snakeCoordinates)
 
 
     def calculateNewCoordinates(self) -> tuple:
@@ -174,6 +182,14 @@ class Game():
         """
         lastX, lastY = self.snakeCoordinates[-1]
         #complete the method implementation below
+        if self.direction == "Left":
+            return (lastX-15, lastY)
+        elif self.direction == "Right":
+            return (lastX+15, lastY)
+        elif self.direction == "Up":
+            return (lastX, lastY-15)
+        elif self.direction == "Down":
+            return (lastX, lastY+15)
 
 
     def isGameOver(self, snakeCoordinates) -> None:
@@ -186,6 +202,9 @@ class Game():
         """
         x, y = snakeCoordinates
         #complete the method implementation below
+        
+        #self.gameNotOver = 0
+        
 
     def createNewPrey(self) -> None:
         """ 
@@ -198,10 +217,13 @@ class Game():
             To make playing the game easier, set the x and y to be THRESHOLD
             away from the walls. 
         """
+        
         THRESHOLD = 15   #sets how close prey can be to borders
         #complete the method implementation below
-
-
+        x = random.randint(0 + THRESHOLD,500 - THRESHOLD)
+        y = random.randint(0 + THRESHOLD,300 - THRESHOLD)
+        preyCoordinates = (x - 5, y - 5, x + 5, y + 5)
+        self.queue.put({"prey": preyCoordinates})
 if __name__ == "__main__":
     #some constants for our GUI
     WINDOW_WIDTH = 500           
@@ -209,8 +231,8 @@ if __name__ == "__main__":
     SNAKE_ICON_WIDTH = 15
     #add the specified constant PREY_ICON_WIDTH here     
 
-    BACKGROUND_COLOUR = "green"   #you may change this colour if you wish
-    ICON_COLOUR = "yellow"        #you may change this colour if you wish
+    BACKGROUND_COLOUR = "blue"   #you may change this colour if you wish
+    ICON_COLOUR = "red"        #you may change this colour if you wish
 
     gameQueue = queue.Queue()     #instantiate a queue object using python's queue class
 
