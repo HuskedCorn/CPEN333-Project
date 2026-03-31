@@ -115,6 +115,7 @@ class Game():
         self.direction = "Left"
         self.nextDirection = "Left" # Added new object to prevent illegal changes within one tick
         self.gameNotOver = True
+        self.preyCoordinates = ""
         self.createNewPrey()
 
     def superloop(self) -> None:
@@ -125,7 +126,7 @@ class Game():
             Use the SPEED constant to set how often the move tasks
             are generated.
         """
-        SPEED = 0.2    #speed of snake updates (sec)
+        SPEED = 0.15    #speed of snake updates (sec)
         while self.gameNotOver:
             #complete the method implementation below
             self.move()
@@ -163,12 +164,22 @@ class Game():
         """
         self.direction = self.nextDirection
         NewSnakeCoordinates = self.calculateNewCoordinates()
-        print(NewSnakeCoordinates)
+        #print(NewSnakeCoordinates)
         #complete the method implementation below
+        print(self.preyCoordinates)
+        print(self.snakeCoordinates[-1])
+
+        # Check if snake is going to eat prey
+        if (self.preyCoordinates[0] <= NewSnakeCoordinates[0] <= self.preyCoordinates[2] and
+            self.preyCoordinates[1] <= NewSnakeCoordinates[1] <= self.preyCoordinates[3]):
+            self.createNewPrey()
+            # Increase size of snake
+            self.snakeCoordinates.append(NewSnakeCoordinates)
+
+        # Move snake
         self.snakeCoordinates.append(NewSnakeCoordinates)
         self.snakeCoordinates = self.snakeCoordinates[1:]
         self.queue.put({"move": self.snakeCoordinates})
-        #print(self.snakeCoordinates)
 
 
     def calculateNewCoordinates(self) -> tuple:
@@ -183,13 +194,13 @@ class Game():
         lastX, lastY = self.snakeCoordinates[-1]
         #complete the method implementation below
         if self.direction == "Left":
-            return (lastX-15, lastY)
+            return (lastX-SNAKE_ICON_WIDTH, lastY)
         elif self.direction == "Right":
-            return (lastX+15, lastY)
+            return (lastX+SNAKE_ICON_WIDTH, lastY)
         elif self.direction == "Up":
-            return (lastX, lastY-15)
+            return (lastX, lastY-SNAKE_ICON_WIDTH)
         elif self.direction == "Down":
-            return (lastX, lastY+15)
+            return (lastX, lastY+SNAKE_ICON_WIDTH)
 
 
     def isGameOver(self, snakeCoordinates) -> None:
@@ -217,18 +228,19 @@ class Game():
             To make playing the game easier, set the x and y to be THRESHOLD
             away from the walls. 
         """
-        
         THRESHOLD = 15   #sets how close prey can be to borders
         #complete the method implementation below
         x = random.randint(0 + THRESHOLD,500 - THRESHOLD)
         y = random.randint(0 + THRESHOLD,300 - THRESHOLD)
-        preyCoordinates = (x - 5, y - 5, x + 5, y + 5)
-        self.queue.put({"prey": preyCoordinates})
+        self.preyCoordinates = (x - PREY_ICON_WIDTH, y - PREY_ICON_WIDTH, x + PREY_ICON_WIDTH, y + PREY_ICON_WIDTH)
+        self.queue.put({"prey": self.preyCoordinates})
+
 if __name__ == "__main__":
     #some constants for our GUI
     WINDOW_WIDTH = 500           
     WINDOW_HEIGHT = 300 
-    SNAKE_ICON_WIDTH = 15
+    SNAKE_ICON_WIDTH = 20
+    PREY_ICON_WIDTH = 10
     #add the specified constant PREY_ICON_WIDTH here     
 
     BACKGROUND_COLOUR = "blue"   #you may change this colour if you wish
